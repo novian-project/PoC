@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { background: #f9f9f9; padding: 20px; text-align: center; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <h3>Konten di Dalam Iframe</h3>
+    <button id="btnMintaLokasi">Klik untuk Bagikan Lokasi</button>
+    <p id="status"></p>
+
+    <script>
+        document.getElementById('btnMintaLokasi').addEventListener('click', () => {
+            const status = document.getElementById('status');
+            
+            if (!navigator.geolocation) {
+                status.textContent = "Geolocation tidak didukung oleh browser ini.";
+                return;
+            }
+
+            status.textContent = "Meminta izin lokasi...";
+
+            // Memicu prompt izin browser
+            navigator.geolocation.getCurrentPosition(
+                // Jika pengguna memilih "Allow"
+                (position) => {
+                    status.textContent = "Izin diberikan! Mengirim data ke halaman utama...";
+                    
+                    // Mengirim koordinat ke halaman utama menggunakan postMessage
+                    window.parent.postMessage({
+                        type: "LOCATION_FOUND",
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    }, "*"); 
+                },
+                // Jika pengguna memilih "Block" atau terjadi error
+                (error) => {
+                    status.textContent = "Gagal mendapatkan lokasi: " + error.message;
+                }
+            );
+        });
+    </script>
+
+</body>
+</html>
