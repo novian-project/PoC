@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Pengujian Document PiP</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #pip-content {
+            padding: 15px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            width: 300px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Lab Pengujian Document PiP</h1>
+    <p>Gunakan tombol di bawah untuk menguji pembukaan jendela Document PiP.</p>
+
+    <!-- Tombol pemicu (Harus melalui interaksi pengguna langsung) -->
+    <button id="open-pip-btn">Buka Dokumen di PiP</button>
+
+    <!-- Konten yang akan dipindahkan ke dalam jendela PiP -->
+    <div id="pip-content">
+        <h3>Konten Jendela PiP</h3>
+        <p>Ini adalah elemen HTML yang berada di dalam jendela Picture-in-Picture.</p>
+        <button id="action-btn">Klik Saya di PiP</button>
+    </div>
+
+    <script>
+        const openPipBtn = document.getElementById('open-pip-btn');
+        const pipContent = document.getElementById('pip-content');
+
+        openPipBtn.addEventListener('click', async () => {
+            // 1. Memeriksa apakah peramban mendukung Document PiP API
+            if ('documentPictureInPicture' in window) {
+                try {
+                    // 2. Meminta pembuatan jendela PiP dengan dimensi tertentu
+                    const pipWindow = await window.documentPictureInPicture.requestWindow({
+                        width: 350,
+                        height: 250,
+                    });
+
+                    // 3. Memindahkan konten HTML dari halaman utama ke jendela PiP
+                    pipWindow.document.body.append(pipContent);
+
+                    // 4. (Opsional) Salin gaya/CSS dari halaman utama agar tampilan tetap rapi
+                    [...document.styleSheets].forEach((styleSheet) => {
+                        try {
+                            const cssRules = [...styleSheet.cssRules].map((rule) => rule.cssText).join('');
+                            const style = document.createElement('style');
+                            style.textContent = cssRules;
+                            pipWindow.document.head.appendChild(style);
+                        } catch (e) {
+                            // Mengabaikan error cross-origin stylesheet jika ada
+                        }
+                    });
+
+                    // 5. Menangani logika ketika jendela PiP ditutup oleh pengguna
+                    window.documentPictureInPicture.addEventListener('enter', () => {
+                        console.log('Jendela PiP aktif.');
+                    }, { once: true });
+
+                } catch (error) {
+                    console.error('Gagal membuka Jendela PiP:', error);
+                }
+            } else {
+                alert('Peramban Anda tidak mendukung Document Picture-in-Picture API.');
+            }
+        });
+
+        // Contoh penanganan event di dalam jendela PiP
+        document.getElementById('action-btn').addEventListener('click', () => {
+            alert('Aksi di dalam jendela PiP berhasil dieksekusi!');
+        });
+    </script>
+</body>
+</html>
