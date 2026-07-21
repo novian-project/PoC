@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uji Coba Save File Picker - Tanpa Filter Ekstensi</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        p {
+            font-size: 14px;
+            color: #666;
+            margin-top: 0;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .btn-green {
+            background-color: #2ecc71;
+        }
+        .btn-green:hover {
+            background-color: #27ae60;
+        }
+        .status {
+            margin-top: 10px;
+            font-size: 12px;
+            font-style: italic;
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Uji Coba File Picker (Ekstensi Tersembunyi)</h2>
+    <p id="browser-check" class="status"></p>
+
+    <!-- METODE 1 -->
+    <div class="card">
+        <h3>Metode 1: Mode "All Files" Tanpa Objek Types</h3>
+        <p>Dialog hanya menampilkan pilihan "All Files (*.*)". Ekstensi file (.xlsx) disisipkan langsung pada nama default.</p>
+        <button id="btnMetode1">Simpan File Excel</button>
+    </div>
+
+    <!-- METODE 2 -->
+    <div class="card">
+        <h3>Metode 2: Menggunakan MIME Type Umum (Octet-Stream)</h3>
+        <p>Menghapus opsi "All Files" bawaan browser dan menggantinya dengan deskripsi kustom tanpa memunculkan daftar ekstensi aslinya (.csv).</p>
+        <button id="btnMetode2" class="btn-green">Simpan File CSV</button>
+    </div>
+
+    <script>
+        // Cek apakah browser mendukung File System Access API
+        if ('showSaveFilePicker' in window) {
+            document.getElementById('browser-check').style.color = '#27ae60';
+            document.getElementById('browser-check').innerText = '✓ Browser Anda mendukung File System Access API.';
+        } else {
+            document.getElementById('browser-check').innerText = '⚠ Peringatan: Browser Anda TIDAK mendukung API ini. Pastikan menggunakan Chrome/Edge via HTTPS atau Localhost.';
+        }
+
+        // ==========================================
+        // EKSEKUSI METODE 1 (Tanpa parameter 'types')
+        // ==========================================
+        document.getElementById('btnMetode1').addEventListener('click', async () => {
+            // Membuat blob data dummy (ceritanya file Excel)
+            const dataDummy = "Kolom A,Kolom B\nData 1,Data 2";
+            const fileBlob = new Blob([dataDummy], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+
+            try {
+                const opsi = {
+                    suggestedName: 'laporan_bulanan.xlsx' // Ekstensi ditulis langsung di sini
+                    // Properti 'types' dikosongkan total
+                };
+
+                const handle = await window.showSaveFilePicker(opsi);
+                const writable = await handle.createWritable();
+                await writable.write(fileBlob);
+                await writable.close();
+                
+                alert('Metode 1 Berhasil: File tersimpan sebagai .xlsx tanpa daftar ekstensi di dialog!');
+            } catch (error) {
+                if (error.name !== 'AbortError') console.error(error);
+            }
+        });
+
+        // ==========================================
+        // EKSEKUSI METODE 2 (MIME Genrik & Exclude All)
+        // ==========================================
+        document.getElementById('btnMetode2').addEventListener('click', async () => {
+            // Membuat blob data dummy (ceritanya file CSV)
+            const dataDummy = "id;nama;status\n1;Budi;Aktif\n2;Andi;Selesai";
+            const fileBlob = new Blob([dataDummy], { type: "text/csv" });
+
+            try {
+                const opsi = {
+                    suggestedName: 'data_ekspor.csv',
+                    excludeAcceptAllOption: true, // Menghapus pilihan "All Files (*.*)" dari Chrome
+                    types: [{
+                        description: 'Berkas Unduhan Sistem', // Label samaran di dropdown dialog
+                        accept: {
+                            // Menggunakan octet-stream agar tipe asli tidak terdeteksi oleh komputer saat dialog muncul
+                            'application/octet-stream': ['.csv'] 
+                        }
+                    }]
+                };
+
+                const handle = await window.showSaveFilePicker(opsi);
+                const writable = await handle.createWritable();
+                await writable.write(fileBlob);
+                await writable.close();
+                
+                alert('Metode 2 Berhasil: File tersimpan sebagai .csv dengan label kustom!');
+            } catch (error) {
+                if (error.name !== 'AbortError') console.error(error);
+            }
+        });
+    </script>
+
+</body>
+</html>
